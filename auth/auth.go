@@ -26,6 +26,19 @@ func Register(c *deis.Client, username, password, email string) error {
 	return err
 }
 
+// GoogleAuthLogin logins the user to the controller using google auth
+func GoogleAuthLogin(c *deis.Client) error {
+	//get url
+	resURL, reqErr := c.Request("GET", "/google_auth/codeUrl")
+	if reqErr != nil && !deis.IsErrAPIMismatch(reqErr) {
+		return "", reqErr
+	}
+	defer resURL.Body.Close()
+	codeURL := resUrl.Body
+	//enter in url while listening callback
+	//get callback
+}
+
 // Login to the controller and get a token
 func Login(c *deis.Client, username, password string) (string, error) {
 	user := api.AuthLoginRequest{Username: username, Password: password}
