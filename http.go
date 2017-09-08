@@ -124,7 +124,7 @@ your deis version is correct.`
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 401 {
+	if res.StatusCode != 403 {
 		return fmt.Errorf(errorMessage, c.ControllerURL.String())
 	}
 

@@ -3,6 +3,11 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
+	"os/exec"
+	"runtime"
 
 	deis "github.com/deis/controller-sdk-go"
 	"github.com/deis/controller-sdk-go/api"
@@ -26,17 +31,87 @@ func Register(c *deis.Client, username, password, email string) error {
 	return err
 }
 
-// GoogleAuthLogin logins the user to the controller using google auth
-func GoogleAuthLogin(c *deis.Client) error {
-	//get url
-	resURL, reqErr := c.Request("GET", "/google_auth/codeUrl")
+func openBrowser(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	return exec.Command(cmd, args...).Start()
+}
+
+func getGoogleAuthGrabCodeURL(c *deis.Client) (string, error) {
+	res, reqErr := c.Request("GET", "/google_auth/code_url", []byte(""))
 	if reqErr != nil && !deis.IsErrAPIMismatch(reqErr) {
 		return "", reqErr
 	}
-	defer resURL.Body.Close()
-	codeURL := resUrl.Body
-	//enter in url while listening callback
-	//get callback
+	defer res.Body.Close()
+	codeURL := api.CodeURLResponse{}
+	if err := json.NewDecoder(res.Body).Decode(&codeURL); err != nil {
+		return "", err
+	}
+	return codeURL.CodeURL, nil
+}
+
+func exchangeCodeForAccessToken(c *deis.Client, code string) (string, error) {
+	exchangeCodeURL := fmt.Sprintf("/google_auth/authenticate/?code=%s", code)
+	res, reqErr := c.Request("POST", exchangeCodeURL, []byte(""))
+	if reqErr != nil && !deis.IsErrAPIMismatch(reqErr) {
+		return "", reqErr
+	}
+	defer res.Body.Close()
+	token := api.AuthLoginResponse{}
+	if err := json.NewDecoder(res.Body).Decode(&token); err != nil {
+		return "", err
+	}
+	return token.Token, nil
+
+}
+
+// GoogleAuthLogin logins the user to the controller using google auth
+func GoogleAuthLogin(c *deis.Client) (string, error) {
+	codeURL, err := getGoogleAuthGrabCodeURL(c)
+	if err != nil {
+		return "", err
+	}
+	if err := openBrowser(codeURL); err != nil {
+		return "", err
+	}
+	l, err := net.Listen("tcp", ":57654")
+
+	if err != nil {
+		return "", err
+	}
+	code, err := func() (string, error) {
+		var code string
+		var err error
+		http.HandleFunc("/google_auth/complete", func(w http.ResponseWriter, r *http.Request) {
+			if c, ok := r.URL.Query()["code"]; ok {
+				code = c[0]
+				err = nil
+				l.Close()
+			} else {
+				code = ""
+				err = fmt.Errorf("couldn't get user authentication token")
+				l.Close()
+			}
+		})
+		fmt.Println("Go login into your google account in the browser... waiting for callback...")
+		http.Serve(l, nil)
+		return code, err
+	}()
+	if err != nil {
+		return "", err
+	}
+	return exchangeCodeForAccessToken(c, code)
 }
 
 // Login to the controller and get a token

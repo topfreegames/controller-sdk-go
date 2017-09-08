@@ -36,6 +36,11 @@ type AuthCancelRequest struct {
 	Username string `json:"username"`
 }
 
+// CodeURLResponse is the return from codeUrl google auth path
+type CodeURLResponse struct {
+	CodeURL string `json:"codeUrl"`
+}
+
 // AuthRegenerateResponse is the definition of /v2/auth/tokens/.
 type AuthRegenerateResponse tokenResponse
 
