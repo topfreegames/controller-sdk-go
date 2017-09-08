@@ -97,10 +97,12 @@ func GoogleAuthLogin(c *deis.Client) (string, error) {
 			if c, ok := r.URL.Query()["code"]; ok {
 				code = c[0]
 				err = nil
+				fmt.Fprintf(w, "you are logged in! now go back to the cli.")
 				l.Close()
 			} else {
 				code = ""
 				err = fmt.Errorf("couldn't get user authentication token")
+				fmt.Fprintf(w, "failed to authenticate :/")
 				l.Close()
 			}
 		})
