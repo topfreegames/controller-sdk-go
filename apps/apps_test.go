@@ -1,7 +1,10 @@
 package apps
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -105,6 +108,11 @@ func (f *fakeHTTPServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	// We mimic those here
 	if req.URL.Path == "/v2/apps/example-go/logs" && req.URL.RawQuery == "log_lines=1" && req.Method == "GET" {
 		res.Write([]byte("test"))
+		return
+	}
+
+	if req.URL.Path == "/v2/apps/example-go/logs" && req.URL.RawQuery == "tail=true" && req.Method == "GET" {
+		res.Write([]byte(`test\nfoo\nbar`))
 		return
 	}
 
@@ -334,6 +342,34 @@ func TestAppsLogs(t *testing.T) {
 		if actual != test.Expected {
 			t.Errorf("Expected %s, Got %s", test.Expected, actual)
 		}
+	}
+}
+
+func TestAppsLogsTail(t *testing.T) {
+	t.Parallel()
+
+	handler := fakeHTTPServer{}
+	server := httptest.NewServer(&handler)
+	defer server.Close()
+
+	var buf bytes.Buffer
+	writer := bufio.NewWriter(&buf)
+
+	deis, err := deis.New(false, server.URL, "abc")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual, _ := LogsTail(deis, "example-go")
+	io.Copy(writer, actual.Body)
+	result := buf.String()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if result != "test\\nfoo\\nbar" {
+		t.Errorf("Expected %s, Got %s", "test\nfoo\nbar", result)
 	}
 }
 
