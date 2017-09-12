@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strconv"
 
 	deis "github.com/deis/controller-sdk-go"
@@ -108,6 +109,12 @@ func Logs(c *deis.Client, appID string, lines int) (string, error) {
 
 	// We need to trim a few characters off the front and end of the string
 	return string(body), reqErr
+}
+
+// LogsTail tail logs from an app.
+func LogsTail(c *deis.Client, appID string) (*http.Response, error) {
+	u := fmt.Sprintf("/v2/apps/%s/logs?tail=true", appID)
+	return c.StreamRequest("GET", u)
 }
 
 // Run a one-time command in your app. This will start a kubernetes job with the
