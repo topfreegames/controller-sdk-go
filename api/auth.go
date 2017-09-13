@@ -47,4 +47,5 @@ type AuthRegenerateResponse tokenResponse
 // A generic defenition of a token response.
 type tokenResponse struct {
 	Token string `json:"token"`
+	Email string `json:"email"`
 }

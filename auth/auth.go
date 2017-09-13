@@ -61,34 +61,34 @@ func getGoogleAuthGrabCodeURL(c *deis.Client) (string, error) {
 	return codeURL.CodeURL, nil
 }
 
-func exchangeCodeForAccessToken(c *deis.Client, code string) (string, error) {
+func exchangeCodeForAccessToken(c *deis.Client, code string) (string, string, error) {
 	exchangeCodeURL := fmt.Sprintf("/google_auth/authenticate/?code=%s", code)
 	res, reqErr := c.Request("POST", exchangeCodeURL, []byte(""))
 	if reqErr != nil && !deis.IsErrAPIMismatch(reqErr) {
-		return "", reqErr
+		return "", "", reqErr
 	}
 	defer res.Body.Close()
 	token := api.AuthLoginResponse{}
 	if err := json.NewDecoder(res.Body).Decode(&token); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return token.Token, nil
+	return token.Token, token.Email, nil
 
 }
 
 // GoogleAuthLogin logins the user to the controller using google auth
-func GoogleAuthLogin(c *deis.Client) (string, error) {
+func GoogleAuthLogin(c *deis.Client) (string, string, error) {
 	codeURL, err := getGoogleAuthGrabCodeURL(c)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if err := openBrowser(codeURL); err != nil {
-		return "", err
+		return "", "", err
 	}
 	l, err := net.Listen("tcp", ":57654")
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	code, err := func() (string, error) {
 		var code string
@@ -111,7 +111,7 @@ func GoogleAuthLogin(c *deis.Client) (string, error) {
 		return code, err
 	}()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	return exchangeCodeForAccessToken(c, code)
 }
