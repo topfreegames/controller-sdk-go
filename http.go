@@ -161,7 +161,7 @@ func (c *Client) CheckConnection() error {
 Make sure that the Controller URI is correct, the server is running and
 your deis version is correct.`
 
-	// Make a request to /v2/ and expect a 401 response
+	// Make a request to /v2/ and expect a 401 or 403 response
 	req, err := http.NewRequest("GET", c.ControllerURL.String()+"/v2/", bytes.NewBuffer(nil))
 	addUserAgent(&req.Header, c.UserAgent)
 
@@ -176,7 +176,7 @@ your deis version is correct.`
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 403 {
+	if res.StatusCode != 403 && res.StatusCode != 401 {
 		return fmt.Errorf(errorMessage, c.ControllerURL.String())
 	}
 
