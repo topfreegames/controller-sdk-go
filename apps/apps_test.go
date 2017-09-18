@@ -116,6 +116,11 @@ func (f *fakeHTTPServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if req.URL.Path == "/v2/apps/example-go/logs" && req.URL.RawQuery == "tail=true&process=cmd" && req.Method == "GET" {
+		res.Write([]byte(`test\nbar`))
+		return
+	}
+
 	if req.URL.Path == "/v2/apps/example-go/run" && req.Method == "POST" {
 		body, err := ioutil.ReadAll(req.Body)
 
@@ -360,7 +365,7 @@ func TestAppsLogsTail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	actual, _ := LogsTail(deis, "example-go")
+	actual, _ := LogsTail(deis, "example-go", "")
 	io.Copy(writer, actual.Body)
 	result := buf.String()
 
@@ -370,6 +375,34 @@ func TestAppsLogsTail(t *testing.T) {
 
 	if result != "test\\nfoo\\nbar" {
 		t.Errorf("Expected %s, Got %s", "test\nfoo\nbar", result)
+	}
+}
+
+func TestAppsLogsTailWithProcess(t *testing.T) {
+	t.Parallel()
+
+	handler := fakeHTTPServer{}
+	server := httptest.NewServer(&handler)
+	defer server.Close()
+
+	var buf bytes.Buffer
+	writer := bufio.NewWriter(&buf)
+
+	deis, err := deis.New(false, server.URL, "abc")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual, _ := LogsTail(deis, "example-go", "cmd")
+	io.Copy(writer, actual.Body)
+	result := buf.String()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if result != "test\\nbar" {
+		t.Errorf("Expected %s, Got %s", "test\nbar", result)
 	}
 }
 

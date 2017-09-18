@@ -112,8 +112,12 @@ func Logs(c *deis.Client, appID string, lines int) (string, error) {
 }
 
 // LogsTail tail logs from an app.
-func LogsTail(c *deis.Client, appID string) (*http.Response, error) {
+func LogsTail(c *deis.Client, appID string, process string) (*http.Response, error) {
 	u := fmt.Sprintf("/v2/apps/%s/logs?tail=true", appID)
+	if process != "" {
+		u = fmt.Sprintf("%s&process=%s", u, process)
+	}
+
 	return c.StreamRequest("GET", u)
 }
 
