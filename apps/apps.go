@@ -89,8 +89,11 @@ func Get(c *deis.Client, appID string) (api.App, error) {
 
 // Logs retrieves logs from an app. The number of log lines fetched can be set by the lines
 // argument. Setting lines = -1 will retrive all app logs.
-func Logs(c *deis.Client, appID string, lines int) (string, error) {
+func Logs(c *deis.Client, appID string, lines int, process string) (string, error) {
 	u := fmt.Sprintf("/v2/apps/%s/logs", appID)
+	if process != "" {
+		u = fmt.Sprintf("/v2/apps/%s/logs?process=%s", appID, process)
+	}
 
 	if lines > 0 {
 		u += "?log_lines=" + strconv.Itoa(lines)

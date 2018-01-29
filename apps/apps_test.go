@@ -338,7 +338,7 @@ func TestAppsLogs(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actual, err := Logs(deis, "example-go", test.Input)
+		actual, err := Logs(deis, "example-go", test.Input, "")
 
 		if err != nil {
 			t.Error(err)
