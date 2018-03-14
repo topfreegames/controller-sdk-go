@@ -54,11 +54,11 @@ func List(c *deis.Client, appID string, results int) ([]api.Build, int, error) {
 //        log.Fatal(err)
 //    }
 func New(c *deis.Client, appID string, image string,
-	procfile map[string]string) (api.Build, error) {
+	procfile map[string]string, sidecarfile map[string]interface{}) (api.Build, error) {
 
 	u := fmt.Sprintf("/v2/apps/%s/builds/", appID)
 
-	req := api.CreateBuildRequest{Image: image, Procfile: procfile}
+	req := api.CreateBuildRequest{Image: image, Procfile: procfile, Sidecarfile: sidecarfile}
 
 	body, err := json.Marshal(req)
 

@@ -55,7 +55,7 @@ const buildFixture = `
 const (
 	testingClientFingerprint = `78:b9:21:20:1a:ed:e6:10:05:35:47:da:d4:1f:b6:73`
 	configHookExpected       = `{"receive_user":"test","receive_repo":"example-go"}`
-	buildHookExpected        = `{"sha":"abc123","receive_user":"test","receive_repo":"example-go","image":"test:abc123","procfile":{"web":"./run"},"dockerfile":"true"}`
+	buildHookExpected        = `{"sha":"abc123","receive_user":"test","receive_repo":"example-go","image":"test:abc123","procfile":{"web":"./run"},"dockerfile":"true","sidecarfile":{"web":[{"image":"busybox:latest","name":"busybox"}]}}`
 	pushHookExpected         = `{"sha":"abc123","receive_user":"test","receive_repo":"example-go","fingerprint":"testing","ssh_connection":"1234","ssh_original_command":"foo"}`
 )
 
@@ -205,7 +205,18 @@ func TestBuildHook(t *testing.T) {
 
 	expected := 2
 
-	actual, err := CreateBuild(deis, "test", "example-go", "test:abc123", "abc123", map[string]string{"web": "./run"}, true)
+	actual, err := CreateBuild(
+		deis, "test", "example-go", "test:abc123", "abc123",
+		map[string]string{"web": "./run"},
+		map[string]interface{}{
+			"web": []map[string]interface{}{
+				{
+					"image": "busybox:latest",
+					"name":  "busybox",
+				},
+			}},
+		true,
+	)
 
 	if err != nil {
 		t.Error(err)
