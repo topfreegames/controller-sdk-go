@@ -53,17 +53,17 @@ func GetAppConfig(c *deis.Client, username, app string) (api.Config, error) {
 // CreateBuild creates a new release of an application. It returns the version of the new release.
 // gitSha should be the first 8 characters of the git commit sha. Image is either the docker image
 // location for the dockerfile app the absolute url to the tar file for a buldpack app.
-func CreateBuild(c *deis.Client, username, app, image, gitSha string, procfile api.ProcessType,
-	usingDockerifle bool) (int, error) {
+func CreateBuild(c *deis.Client, username, app, image, gitSha string, procfile api.ProcessType, sidecarfile api.ProcessSidecar, usingDockerfile bool) (int, error) {
 	req := api.BuildHookRequest{
-		Sha:      gitSha,
-		User:     username,
-		App:      app,
-		Image:    image,
-		Procfile: procfile,
+		Sha:         gitSha,
+		User:        username,
+		App:         app,
+		Image:       image,
+		Procfile:    procfile,
+		Sidecarfile: sidecarfile,
 	}
 
-	if usingDockerifle {
+	if usingDockerfile {
 		req.Dockerfile = "true"
 	}
 

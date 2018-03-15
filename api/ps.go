@@ -8,6 +8,9 @@ import "github.com/deis/controller-sdk-go/pkg/time"
 // See https://devcenter.heroku.com/articles/procfile
 type ProcessType map[string]string
 
+// ProcessSidecar represents the key/value mappings of a process type to sidecar pods configuration
+type ProcessSidecar map[string]interface{}
+
 // Pods defines the structure of a process.
 type Pods struct {
 	Release string    `json:"release"`

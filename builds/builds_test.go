@@ -27,6 +27,9 @@ const buildsFixture string = `
             "procfile": {
                 "web": "example-go"
             },
+            "sidecarfile": {
+                "web": [{"image": "busybox:latest","name": "busybox"}]
+            },
             "sha": "060da68f",
             "updated": "2014-01-01T00:00:00UTC",
             "uuid": "de1bf5b5-4a72-4f94-a10c-d2a3741cdf75"
@@ -44,12 +47,15 @@ const buildFixture string = `
     "procfile": {
         "web": "example-go"
     },
+    "sidecarfile": {
+        "web": [{"image": "busybox:latest","name": "busybox"}]
+    },
     "sha": "",
     "updated": "2014-01-01T00:00:00UTC",
     "uuid": "de1bf5b5-4a72-4f94-a10c-d2a3741cdf75"
 }`
 
-const buildExpected string = `{"image":"deis/example-go","procfile":{"web":"example-go"}}`
+const buildExpected string = `{"image":"deis/example-go","procfile":{"web":"example-go"},"sidecarfile":{"web":[{"image":"busybox:latest","name":"busybox"}]}}`
 
 type fakeHTTPServer struct{}
 
@@ -100,6 +106,14 @@ func TestBuildsList(t *testing.T) {
 			Procfile: map[string]string{
 				"web": "example-go",
 			},
+			Sidecarfile: map[string]interface{}{
+				"web": []interface{}{
+					map[string]interface{}{
+						"image": "busybox:latest",
+						"name":  "busybox",
+					},
+				},
+			},
 			Sha:     "060da68f",
 			Updated: "2014-01-01T00:00:00UTC",
 			UUID:    "de1bf5b5-4a72-4f94-a10c-d2a3741cdf75",
@@ -137,6 +151,14 @@ func TestBuildCreate(t *testing.T) {
 		Procfile: map[string]string{
 			"web": "example-go",
 		},
+		Sidecarfile: map[string]interface{}{
+			"web": []interface{}{
+				map[string]interface{}{
+					"image": "busybox:latest",
+					"name":  "busybox",
+				},
+			},
+		},
 		Updated: "2014-01-01T00:00:00UTC",
 		UUID:    "de1bf5b5-4a72-4f94-a10c-d2a3741cdf75",
 	}
@@ -154,13 +176,21 @@ func TestBuildCreate(t *testing.T) {
 		"web": "example-go",
 	}
 
-	actual, err := New(deis, "example-go", "deis/example-go", procfile)
+	sidecarfile := map[string]interface{}{
+		"web": []map[string]interface{}{
+			{
+				"image": "busybox:latest",
+				"name":  "busybox",
+			},
+		},
+	}
+	actual, err := New(deis, "example-go", "deis/example-go", procfile, sidecarfile)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Error(fmt.Errorf("Expected %v, Got %v", expected, actual))
+		t.Error(fmt.Errorf("Expected %+v, Got %+v", expected, actual))
 	}
 }
