@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	deis "github.com/deis/controller-sdk-go"
 	"github.com/deis/controller-sdk-go/api"
@@ -39,6 +40,7 @@ func openBrowser(url string) error {
 	case "windows":
 		cmd = "cmd"
 		args = []string{"/c", "start"}
+		url = strings.Replace(url, "&", "^&", -1)
 	case "darwin":
 		cmd = "open"
 	default: // "linux", "freebsd", "openbsd", "netbsd"
