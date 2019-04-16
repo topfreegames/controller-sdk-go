@@ -55,7 +55,7 @@ type ConfigHookRequest struct {
 }
 
 // Annotation has the same structure as a Kubernetes pod annotations
-type Annotation map[string]string
+type Annotation map[string]interface{}
 
 // Healthchecks is a map of healthcheck probes.
 // The valid values are "livenessProbe" and "readinessProbe".
