@@ -22,6 +22,8 @@ type Config struct {
 	Owner string `json:"owner,omitempty"`
 	// App is the app name. It cannot be updated at all right now.
 	App string `json:"app,omitempty"`
+	// Annotations are set to the pod of the corresponding type
+	Annotations map[string]Annotation `json:"annotations,omitempty"`
 	// Values are exposed as environment variables to the app.
 	Values map[string]interface{} `json:"values,omitempty"`
 	// Memory is used to set process memory limits. The key is the process name
@@ -51,6 +53,9 @@ type ConfigHookRequest struct {
 	User string `json:"receive_user"`
 	App  string `json:"receive_repo"`
 }
+
+// Annotation has the same structure as a Kubernetes pod annotations
+type Annotation map[string]interface{}
 
 // Healthchecks is a map of healthcheck probes.
 // The valid values are "livenessProbe" and "readinessProbe".
