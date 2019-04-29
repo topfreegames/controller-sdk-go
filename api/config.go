@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"k8s.io/api/core/v1"
 	"text/template"
 )
 
@@ -36,6 +37,8 @@ type Config struct {
 	Healthcheck map[string]*Healthchecks `json:"healthcheck,omitempty"`
 	// Tags restrict applications to run on k8s nodes with that label.
 	Tags map[string]interface{} `json:"tags,omitempty"`
+	// Tolerations are the kubernetes tolerations set to the pods of an application type
+	Tolerations map[string]map[string]*v1.Toleration `json:"tolerations,omitempty"`
 	// Registry is a key-value pair to provide authentication for docker registries.
 	// The key is the username and the value is the password.
 	Registry map[string]interface{} `json:"registry,omitempty"`
