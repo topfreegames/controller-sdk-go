@@ -4,10 +4,13 @@ FROM quay.io/deis/go-dev:v1.12.2
 ADD https://codecov.io/bash /usr/local/bin/codecov
 RUN chmod +x /usr/local/bin/codecov
 
-COPY . /go/src/github.com/deis/controller-sdk-go
+COPY Gopkg.lock /go/src/github.com/deis/controller-sdk-go/Gopkg.lock
+COPY Gopkg.toml /go/src/github.com/deis/controller-sdk-go/Gopkg.toml
 
 WORKDIR /go/src/github.com/deis/controller-sdk-go
 
-RUN dep ensure
+RUN dep ensure --vendor-only
+
+COPY . /go/src/github.com/deis/controller-sdk-go
 
 COPY ./_scripts /usr/local/bin
